@@ -11,7 +11,10 @@ class AnthropicLLM(BaseLLM):
         super().__init__(*args, **kwargs)
         self.api_key = api_key or settings.ANTHROPIC_API_KEY or settings.API_KEY
         self.user_api_key = user_api_key
-        self.anthropic = Anthropic(api_key=self.api_key)
+        # Prefer a provided per-call/user API key when constructing the client,
+        # fall back to the configured api_key otherwise.
+        client_api_key = self.user_api_key or self.api_key
+        self.anthropic = Anthropic(api_key=client_api_key)
         self.HUMAN_PROMPT = HUMAN_PROMPT
         self.AI_PROMPT = AI_PROMPT
 

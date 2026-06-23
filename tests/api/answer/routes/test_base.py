@@ -500,9 +500,14 @@ class TestProcessResponseStream:
 
             result = resource.process_response_stream(iter(stream))
 
-            assert len(result) == 5
+            # The stream error path returns a 6-element tuple; verify structure and error message
+            assert len(result) == 6
             assert result[0] is None
+            assert result[1] is None
+            assert result[2] is None
+            assert result[3] is None
             assert result[4] == "Test error"
+            assert result[5] is None
 
     def test_handles_malformed_stream_data(self, mock_mongo_db, flask_app):
         from application.api.answer.routes.base import BaseAnswerResource
