@@ -60,6 +60,7 @@ class ConversationService:
         is_shared_usage: bool = False,
         shared_token: Optional[str] = None,
         attachment_ids: Optional[List[str]] = None,
+        gpt_model: Optional[str] = None,
     ) -> str:
         """Save or update a conversation in the database"""
         user_id = decoded_token.get("sub")
@@ -91,6 +92,7 @@ class ConversationService:
                         f"queries.{index}.timestamp": current_time,
                         f"queries.{index}.attachments": attachment_ids,
                         f"queries.{index}.model_id": model_id,
+                        f"queries.{index}.gpt_model": gpt_model,
                     }
                 },
             )
@@ -122,6 +124,7 @@ class ConversationService:
                             "timestamp": current_time,
                             "attachments": attachment_ids,
                             "model_id": model_id,
+                            "gpt_model": gpt_model,
                         }
                     }
                 },
@@ -155,6 +158,7 @@ class ConversationService:
                 "user": user_id,
                 "date": current_time,
                 "name": completion,
+                "gpt_model": gpt_model,
                 "queries": [
                     {
                         "prompt": question,
@@ -165,6 +169,7 @@ class ConversationService:
                         "timestamp": current_time,
                         "attachments": attachment_ids,
                         "model_id": model_id,
+                        "gpt_model": gpt_model,
                     }
                 ],
             }

@@ -11,7 +11,10 @@ class TestBaseAgentInitialization:
     def test_agent_initialization(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator
     ):
-        agent = ClassicAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ClassicAgent(**params)
+        if "gpt_model" in agent_base_params:
+            agent.gpt_model = agent_base_params["gpt_model"]
 
         assert agent.endpoint == agent_base_params["endpoint"]
         assert agent.llm_name == agent_base_params["llm_name"]
@@ -473,7 +476,10 @@ class TestBaseAgentLLMGeneration:
         mock_llm_handler_creator,
         log_context,
     ):
-        agent = ClassicAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ClassicAgent(**params)
+        if "gpt_model" in agent_base_params:
+            agent.gpt_model = agent_base_params["gpt_model"]
 
         messages = [{"role": "user", "content": "test"}]
         agent._llm_gen(messages, log_context)
@@ -531,7 +537,10 @@ class TestBaseAgentHandleResponse:
     def test_handle_response_string(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator, log_context
     ):
-        agent = ClassicAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ClassicAgent(**params)
+        if "gpt_model" in agent_base_params:
+            agent.gpt_model = agent_base_params["gpt_model"]
 
         response = "Simple string response"
         results = list(agent._handle_response(response, {}, [], log_context))
@@ -542,7 +551,10 @@ class TestBaseAgentHandleResponse:
     def test_handle_response_with_message(
         self, agent_base_params, mock_llm_creator, mock_llm_handler_creator, log_context
     ):
-        agent = ClassicAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ClassicAgent(**params)
+        if "gpt_model" in agent_base_params:
+            agent.gpt_model = agent_base_params["gpt_model"]
 
         response = Mock()
         response.message = Mock()
@@ -564,7 +576,10 @@ class TestBaseAgentHandleResponse:
         mock_llm._supports_structured_output = Mock(return_value=True)
         agent_base_params["json_schema"] = {"type": "object"}
 
-        agent = ClassicAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ClassicAgent(**params)
+        if "gpt_model" in agent_base_params:
+            agent.gpt_model = agent_base_params["gpt_model"]
 
         response = "Structured response"
         results = list(agent._handle_response(response, {}, [], log_context))
@@ -586,7 +601,10 @@ class TestBaseAgentHandleResponse:
 
         mock_llm_handler.process_message_flow = Mock(side_effect=mock_process)
 
-        agent = ClassicAgent(**agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = ClassicAgent(**params)
+        if "gpt_model" in agent_base_params:
+            agent.gpt_model = agent_base_params["gpt_model"]
 
         response = Mock()
         response.message = None

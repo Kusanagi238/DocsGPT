@@ -33,6 +33,8 @@ class BaseAnswerResource:
         self.db = db
         self.user_logs_collection = db["user_logs"]
         self.default_model_id = get_default_model_id()
+        # Backwards compatibility: expose gpt_model attribute expected by callers/tests
+        self.gpt_model = self.default_model_id
         self.conversation_service = ConversationService()
 
     def validate_request(
@@ -154,6 +156,7 @@ class BaseAnswerResource:
         agent_id: Optional[str] = None,
         is_shared_usage: bool = False,
         shared_token: Optional[str] = None,
+        gpt_model: Optional[str] = None,
         model_id: Optional[str] = None,
     ) -> Generator[str, None, None]:
         """
@@ -173,6 +176,7 @@ class BaseAnswerResource:
             agent_id: ID of agent used
             is_shared_usage: Flag for shared agent usage
             shared_token: Token for shared agent
+            gpt_model: (deprecated) alias for model_id for backward compatibility
             model_id: Model ID used for the request
             retrieved_docs: Pre-fetched documents for sources (optional)
 
@@ -184,6 +188,10 @@ class BaseAnswerResource:
             is_structured = False
             schema_info = None
             structured_chunks = []
+
+            # Backwards compatibility: accept 'gpt_model' as an alias for 'model_id'
+            if gpt_model and not model_id:
+                model_id = gpt_model
 
             for line in agent.gen(query=question):
                 if "answer" in line:

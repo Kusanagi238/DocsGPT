@@ -34,6 +34,10 @@ class ReActAgent(BaseAgent):
     """
 
     def __init__(self, *args, **kwargs):
+        # Extract gpt_model if provided so it is not forwarded to BaseAgent.__init__
+        # (BaseAgent may not accept this kwarg). Also ensure the attribute exists.
+        gpt_model = kwargs.pop('gpt_model', None)
+        self.gpt_model = gpt_model
         super().__init__(*args, **kwargs)
         self.plan: str = ""
         self.observations: List[str] = []

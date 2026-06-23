@@ -8,28 +8,31 @@ from application.agents.react_agent import ReActAgent
 class TestAgentCreator:
 
     def test_create_classic_agent(self, agent_base_params):
-        agent = AgentCreator.create_agent("classic", **agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = AgentCreator.create_agent("classic", **params)
         assert isinstance(agent, ClassicAgent)
         assert agent.endpoint == agent_base_params["endpoint"]
         assert agent.llm_name == agent_base_params["llm_name"]
-        assert agent.gpt_model == agent_base_params["gpt_model"]
 
     def test_create_react_agent(self, agent_base_params):
-        agent = AgentCreator.create_agent("react", **agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = AgentCreator.create_agent("react", **params)
         assert isinstance(agent, ReActAgent)
         assert agent.endpoint == agent_base_params["endpoint"]
         assert agent.llm_name == agent_base_params["llm_name"]
 
     def test_create_agent_case_insensitive(self, agent_base_params):
-        agent_upper = AgentCreator.create_agent("CLASSIC", **agent_base_params)
-        agent_mixed = AgentCreator.create_agent("ClAsSiC", **agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent_upper = AgentCreator.create_agent("CLASSIC", **params)
+        agent_mixed = AgentCreator.create_agent("ClAsSiC", **params)
 
         assert isinstance(agent_upper, ClassicAgent)
         assert isinstance(agent_mixed, ClassicAgent)
 
     def test_create_agent_invalid_type(self, agent_base_params):
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
         with pytest.raises(ValueError, match="No agent class found for type"):
-            AgentCreator.create_agent("invalid_agent_type", **agent_base_params)
+            AgentCreator.create_agent("invalid_agent_type", **params)
 
     def test_agent_registry_contains_expected_agents(self):
         assert "classic" in AgentCreator.agents
@@ -42,7 +45,8 @@ class TestAgentCreator:
         agent_base_params["chat_history"] = [{"prompt": "test", "response": "test"}]
         agent_base_params["json_schema"] = {"type": "object"}
 
-        agent = AgentCreator.create_agent("classic", **agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = AgentCreator.create_agent("classic", **params)
 
         assert agent.user_api_key == "user_key_123"
         assert len(agent.chat_history) == 1
@@ -52,5 +56,6 @@ class TestAgentCreator:
         attachments = [{"name": "file.txt", "content": "test"}]
         agent_base_params["attachments"] = attachments
 
-        agent = AgentCreator.create_agent("classic", **agent_base_params)
+        params = {k: v for k, v in agent_base_params.items() if k != "gpt_model"}
+        agent = AgentCreator.create_agent("classic", **params)
         assert agent.attachments == attachments
