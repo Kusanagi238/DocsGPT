@@ -28,13 +28,22 @@ class FakeCollection:
     def create_index(self, *args, **kwargs):
         pass
 
+    def _normalize_todo_id(self, todo_id):
+        # Keep a consistent key representation: None stays None, otherwise use string
+        if todo_id is None:
+            return None
+        return str(todo_id)
+
     def insert_one(self, doc):
-        key = (doc["user_id"], doc["tool_id"], int(doc["todo_id"]))
-        self.docs[key] = doc
+        todo_id = doc.get("todo_id")
+        key = (doc.get("user_id"), doc.get("tool_id"), self._normalize_todo_id(todo_id))
+        # store a shallow copy to avoid accidental external mutation
+        self.docs[key] = dict(doc)
         return type("res", (), {"inserted_id": key})
 
     def find_one(self, query):
-        key = (query.get("user_id"), query.get("tool_id"), int(query.get("todo_id")))
+        todo_id = query.get("todo_id")
+        key = (query.get("user_id"), query.get("tool_id"), self._normalize_todo_id(todo_id))
         return self.docs.get(key)
 
     def find(self, query):
@@ -47,19 +56,23 @@ class FakeCollection:
         return FakeCursor(filtered)
 
     def update_one(self, query, update, upsert=False):
-        key = (query.get("user_id"), query.get("tool_id"), int(query.get("todo_id")))
+        todo_id = query.get("todo_id")
+        key = (query.get("user_id"), query.get("tool_id"), self._normalize_todo_id(todo_id))
         if key in self.docs:
             self.docs[key].update(update.get("$set", {}))
             return type("res", (), {"matched_count": 1})
         elif upsert:
+            # Build a new document consistently using normalized todo_id
             new_doc = {**query, **update.get("$set", {})}
-            self.docs[key] = new_doc
+            normalized_key = (query.get("user_id"), query.get("tool_id"), self._normalize_todo_id(new_doc.get("todo_id")))
+            self.docs[normalized_key] = dict(new_doc)
             return type("res", (), {"matched_count": 1})
         else:
             return type("res", (), {"matched_count": 0})
 
     def delete_one(self, query):
-        key = (query.get("user_id"), query.get("tool_id"), int(query.get("todo_id")))
+        todo_id = query.get("todo_id")
+        key = (query.get("user_id"), query.get("tool_id"), self._normalize_todo_id(todo_id))
         if key in self.docs:
             del self.docs[key]
             return type("res", (), {"deleted_count": 1})
@@ -71,7 +84,8 @@ def todo_tool(monkeypatch) -> TodoListTool:
     """Provides a TodoListTool with a fake MongoDB backend."""
     fake_collection = FakeCollection()
     fake_client = {settings.MONGO_DB_NAME: {"todos": fake_collection}}
-    monkeypatch.setattr("application.core.mongo_db.MongoDB.get_client", lambda: fake_client)
+    # Ensure the replacement accepts the bound 'self' argument when called as a method
+    monkeypatch.setattr("application.core.mongo_db.MongoDB.get_client", lambda self=None: fake_client)
     return TodoListTool({"tool_id": "test_tool"}, user_id="test_user")
 
 
